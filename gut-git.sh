@@ -1,3 +1,4 @@
+#! /bin/sh
 # $1 is assumed to be a git repo that is then made bare.
 
 #TODO: Make sure $1 is a git repo dir, if $1 is not given, figure out the git
