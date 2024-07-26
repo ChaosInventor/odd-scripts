@@ -1,6 +1,18 @@
 #! /bin/sh
 # $1 is assumed to be a git repo that is then made bare.
 
+set -e
+
+usage() {
+    echo "Usage: $0 [-t | --target <dir>] [--] <path>..."
+
+    exit 1
+}
+
+if [ $# -lt 1 ]; then
+    usage
+fi
+
 #TODO: Make sure $1 is a git repo dir, if $1 is not given, figure out the git
 #dir by traversing from pwd.
 
