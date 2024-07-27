@@ -112,36 +112,33 @@ fi
 failures=
 failuresCount=0
 for worktree in $worktrees; do
-    if [ ! -d $worktree ]; then
+    error=
+    if [ -z "$error" ] && [ ! -d $worktree ]; then
         err "$worktree is not a directory, not gutting"
-        failures="$worktree${failures:+$rootsSeparator$failures}"
-        failuresCount=$((failuresCount + 1))
-        continue
+        error='error'
     fi
 
-    if gitdir="$worktree/$(git -C $worktree rev-parse --git-dir 2> /dev/null)"; then
-        if [ ! -d "$gitdir/objects" ]; then
-            err "git directory $gitdir belonging to $worktree does not have an objects directory; refusing to gut likely linked worktree"
-            failures="$worktree${failures:+$rootsSeparator$failures}"
-            failuresCount=$((failuresCount + 1))
-            continue
-        fi
+    if [ -z "$error" ] && ! gitdir="$worktree/$(git -C $worktree rev-parse --git-dir 2> /dev/null)"; then
+        err "$worktree is not a git worktree, skipping"
+        error='error'
+    fi
 
-        bare="$(git -C $worktree config --local --bool core.bare)"
-        if [ "$bare" = "true" ] ; then
-            err "$worktree already bare, cannot gut"
-            failures="$worktree${failures:+$rootsSeparator$failures}"
-            failuresCount=$((failuresCount + 1))
-            continue
-        fi
+    if [ -z "$error" ] && [ ! -d "$gitdir/objects" ]; then
+        err "git directory $gitdir belonging to $worktree does not have an objects directory; refusing to gut likely linked worktree"
+        error='error'
+    fi
 
-        if [ ! -z "$(git -C "$worktree" status --porcelain=v1)" ]; then
-            err "$worktree has untracked changes, skipping"
-            failures="$worktree${failures:+$rootsSeparator$failures}"
-            failuresCount=$((failuresCount + 1))
-            continue
-        fi
+    if [ -z "$error" ] && [ "$(git -C $worktree config --local --bool core.bare)" = "true" ] ; then
+        err "$worktree already bare, cannot gut"
+        error='error'
+    fi
 
+    if [ -z "$error" ] && [ ! -z "$(git -C "$worktree" status --porcelain=v1)" ]; then
+        err "$worktree has untracked changes, skipping"
+        error='error'
+    fi
+
+    if [ -z "$error" ]; then
         worktreeRoot="$(git -C "$worktree" rev-parse --show-toplevel)"
         git --git-dir="$gitdir" config --local --bool core.bare true
         mv "$gitdir" "$outDir/$(basename "$worktreeRoot").git"
@@ -150,7 +147,6 @@ for worktree in $worktrees; do
             printf "%s$rootsSeparator" "$worktreeRoot"
         fi
     else
-        err "$worktree is not a git worktree, skipping"
         failures="$worktree${failures:+$rootsSeparator$failures}"
         failuresCount=$((failuresCount + 1))
     fi
