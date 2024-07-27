@@ -31,7 +31,7 @@ err() {
 }
 
 if [ $# -lt 1 ]; then
-    usage
+    usage 1>&2
 fi
 
 outDir="$(pwd)"
@@ -45,11 +45,11 @@ while [ $# -gt 0 ]; do
         -t|--target)
             if [ $# -lt 2 ]; then
                 err "No directory specified for $1"
-                usage
+                usage 1>&2
             fi
             if [ ! -d $2 -o ! -w $2 ]; then
                 err "$2 cannot be used as target, it is not a writable directory"
-                usage
+                usage 1>&2
             fi
 
             outDir="$2"
@@ -69,7 +69,7 @@ while [ $# -gt 0 ]; do
             ;;
         -*)
             err "Unknown option $1"
-            usage
+            usage 1>&2
             ;;
         *)
             worktrees="$1${worktrees:+ $worktrees}"
@@ -81,7 +81,7 @@ worktrees="${worktrees:+$worktrees }$@"
 
 if [ -z "$worktrees" ]; then
     err "no worktrees given"
-    usage
+    usage 1>&2
 fi
 
 for worktree in $worktrees; do
