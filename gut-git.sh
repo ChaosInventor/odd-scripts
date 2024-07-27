@@ -3,8 +3,10 @@
 
 set -e
 
+myName=$(basename $0)
+
 usage() {
-    echo "Usage: $0 [-t | --target <dir>] [--] <path>..."
+    echo "Usage: $myName [-t | --target <dir>] [--] <dir>..."
 
     exit 1
 }
@@ -13,15 +15,62 @@ if [ $# -lt 1 ]; then
     usage
 fi
 
-#TODO: Make sure $1 is a git repo dir, if $1 is not given, figure out the git
-#dir by traversing from pwd.
+outDir="$(pwd)"
+worktrees=
+while [ $# -gt 0 ]; do
+    case "$1" in
+        -t|--target)
+            if [ $# -lt 2 ]; then
+                echo "$myName: No directory specified for $1"
+                usage
+            fi
+            if [ ! -d $2 -o ! -w $2 ]; then
+                echo "$myName: $2 cannot be used as target, it is not a writable directory"
+                usage
+            fi
 
-#TODO: Make sure the work tree has no changes or untracked files.
+            outDir="$2"
+            shift 2
+            ;;
+        --)
+            shift
+            break
+            ;;
+        -*)
+            echo "$myName: Unknown option $1"
+            usage
+            ;;
+        *)
+            worktrees="$1${worktrees:+ $worktrees}"
+            shift
+            ;;
+    esac
+done
+worktrees="${worktrees:+$worktrees }$@"
 
-#TODO: The git repo doesn't have to be `.git`, figure it out
-#TODO: Add ability to set destination and specify multiple repos, `mv` style.
-mv $1/.git $1.git
-git --git-dir=$1.git config --local --bool core.bare true
+for worktree in $worktrees; do
+    if [ ! -d $worktree ]; then
+        echo "$myName: $worktree is not a directory, not gutting."
+        continue
+    fi
 
-#TODO: Configurable `rm`, for example, maybe trash instead or archive.
-rm -rf $1
+    if gitdir="$worktree/$(git -C $worktree rev-parse --git-dir 2> /dev/null)"; then
+        if [ ! -d "$gitdir/objects" ]; then
+            echo "$myName: git directory $gitdir belonging to $worktree does not have an objects directory; refusing to gut likely linked worktree"
+            continue
+        fi
+
+        if [ ! -z "$(git -C "$worktree" status --porcelain=v1)" ]; then
+            echo "$myName: $worktree has untracked changes, skipping"
+            continue
+        fi
+
+        worktreeRoot="$(git -C "$worktree" rev-parse --show-toplevel)"
+        git --git-dir="$gitdir" config --local --bool core.bare true
+        mv "$gitdir" "$outDir/$(basename "$worktreeRoot").git"
+
+        #TODO: Optional cleanup of worktree root
+    else
+        echo "$myName: $worktree is not a git worktree, skipping"
+    fi
+done
