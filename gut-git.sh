@@ -14,16 +14,25 @@ set -e
 myName=$(basename $0)
 
 usage() {
-    echo "Usage: $myName [-h | --help] [-t | --target <dir>] [-p | --[no-]print] [-P | --[no-]failures] [-z | -Z | -0 | --null] [--] <dir>..."
-    echo "$description"
-    echo
-    echo "[-h | --help] - print this message and exit"
-    echo "[-t | --target <dir>] - where to put newly bare repos, pwd by default"
-    echo "[--] - stop option processing, allows for directories that start with -"
-    echo "[-p | --[no-]print] - enable or disable printing of gutted worktree toplevel directories, off by default"
-    echo "[-P | --[no-]failures] - enable or disable printing of worktree directories that weren't gutted, off by default. If gutted worktree toplevel printing is also enabled, a blank line is printed before the failures."
-    echo "[-z | -Z | -0 | --null] - when printing, separate output lines with a null character instead of a newline"
-    echo "<dir>... - list of git worktrees"
+    cat <<EOF
+Usage: $myName [-h | --help] [-t | --target <dir>] [-p | --[no-]print]
+               [-P | --[no-]failures] [-z | -Z | -0 | --null] [--]
+               <dir>...
+$description
+
+[-h | --help] - print this message and exit
+[-t | --target <dir>] - where to put newly bare repos, pwd by default
+[-p | --[no-]print] - enable or disable printing of gutted worktree
+    toplevel directories, off by default
+[-P | --[no-]failures] - enable or disable printing of worktree
+    directories that weren't gutted, off by default. If gutted worktree
+    toplevel printing is also enabled, a blank line is printed before
+    the failures.
+[-z | -Z | -0 | --null] - when printing, separate output lines with a
+    null character instead of a newline
+[--] - stop option processing, allows for directories that start with -
+<dir>... - list of git worktrees
+EOF
 
     exit "${1:-1}"
 }
