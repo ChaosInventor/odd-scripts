@@ -14,13 +14,14 @@ set -e
 myName=$(basename $0)
 
 usage() {
-    echo "Usage: $myName [-h | --help] [-t | --target <dir>] [-p | --[no-]print] [--] <dir>..."
+    echo "Usage: $myName [-h | --help] [-t | --target <dir>] [-p | --[no-]print] [-z | -Z | -0 | --null] [--] <dir>..."
     echo "$description"
     echo
     echo "[-h | --help] - print this message and exit"
     echo "[-t | --target <dir>] - where to put newly bare repos, pwd by default"
     echo "[--] - stop option processing, allows for directories that start with -"
     echo "[-p | --[no-]print] - enable or disable printing of gutted worktree toplevel directories, off by default"
+    echo "[-z | -Z | -0 | --null] - when printing, separate gutted worktrees with a null character instead of a newline"
     echo "<dir>... - list of git worktrees"
 
     exit 1
@@ -37,6 +38,7 @@ fi
 outDir="$(pwd)"
 worktrees=
 printRoots=false
+rootsSeparator='\n'
 while [ $# -gt 0 ]; do
     case "$1" in
         -h|--help)
@@ -61,6 +63,10 @@ while [ $# -gt 0 ]; do
             ;;
         --no-print)
             printRoots=false
+            shift
+            ;;
+        -0|-z|-Z|--null)
+            rootsSeparator='\0'
             shift
             ;;
         --)
@@ -106,7 +112,7 @@ for worktree in $worktrees; do
         mv "$gitdir" "$outDir/$(basename "$worktreeRoot").git"
 
         if [ "$printRoots" = "true" ]; then
-            printf "%s\n" "$worktreeRoot"
+            printf "%s$rootsSeparator" "$worktreeRoot"
         fi
     else
         err "$worktree is not a git worktree, skipping"
