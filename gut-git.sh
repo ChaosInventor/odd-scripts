@@ -14,12 +14,13 @@ set -e
 myName=$(basename $0)
 
 usage() {
-    echo "Usage: $myName [-h | --help] [-t | --target <dir>] [--] <dir>..."
+    echo "Usage: $myName [-h | --help] [-t | --target <dir>] [-p | --[no-]print] [--] <dir>..."
     echo "$description"
     echo
     echo "[-h | --help] - print this message and exit"
     echo "[-t | --target <dir>] - where to put newly bare repos, pwd by default"
     echo "[--] - stop option processing, allows for directories that start with -"
+    echo "[-p | --[no-]print] - enable or disable printing of gutted worktree toplevel directories, off by default"
     echo "<dir>... - list of git worktrees"
 
     exit 1
@@ -31,6 +32,7 @@ fi
 
 outDir="$(pwd)"
 worktrees=
+printRoots=false
 while [ $# -gt 0 ]; do
     case "$1" in
         -h|--help)
@@ -48,6 +50,14 @@ while [ $# -gt 0 ]; do
 
             outDir="$2"
             shift 2
+            ;;
+        -p|--print)
+            printRoots=true
+            shift
+            ;;
+        --no-print)
+            printRoots=false
+            shift
             ;;
         --)
             shift
@@ -91,7 +101,9 @@ for worktree in $worktrees; do
         git --git-dir="$gitdir" config --local --bool core.bare true
         mv "$gitdir" "$outDir/$(basename "$worktreeRoot").git"
 
-        #TODO: Optional cleanup of worktree root
+        if [ "$printRoots" = "true" ]; then
+            printf "%s\n" "$worktreeRoot"
+        fi
     else
         echo "$myName: $worktree is not a git worktree, skipping"
     fi
