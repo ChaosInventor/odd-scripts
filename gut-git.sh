@@ -1,5 +1,13 @@
 #! /bin/sh
-# $1 is assumed to be a git repo that is then made bare.
+
+description=$(cat <<EOF
+Turns a git worktree into a bare repository.
+
+Worktrees, directories containg a project and it's .git directory, are
+gutted. The .git directory is moved to the target directory, renamed to
+<project name>.git and configured to be bare.
+EOF
+)
 
 set -e
 
@@ -7,6 +15,10 @@ myName=$(basename $0)
 
 usage() {
     echo "Usage: $myName [-t | --target <dir>] [--] <dir>..."
+    echo "$description"
+    echo
+    echo "[-t --target <dir>] - where to put newly bare repos, pwd by default"
+    echo "<dir>... - list of git worktrees"
 
     exit 1
 }
