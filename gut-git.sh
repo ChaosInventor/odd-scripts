@@ -14,14 +14,15 @@ set -e
 myName=$(basename $0)
 
 usage() {
-    echo "Usage: $myName [-h | --help] [-t | --target <dir>] [-p | --[no-]print] [-z | -Z | -0 | --null] [--] <dir>..."
+    echo "Usage: $myName [-h | --help] [-t | --target <dir>] [-p | --[no-]print] [-P | --[no-]failures] [-z | -Z | -0 | --null] [--] <dir>..."
     echo "$description"
     echo
     echo "[-h | --help] - print this message and exit"
     echo "[-t | --target <dir>] - where to put newly bare repos, pwd by default"
     echo "[--] - stop option processing, allows for directories that start with -"
     echo "[-p | --[no-]print] - enable or disable printing of gutted worktree toplevel directories, off by default"
-    echo "[-z | -Z | -0 | --null] - when printing, separate gutted worktrees with a null character instead of a newline"
+    echo "[-P | --[no-]failures] - enable or disable printing of worktree directories that weren't gutted, off by default. If gutted worktree toplevel printing is also enabled, a blank line is printed before the failures."
+    echo "[-z | -Z | -0 | --null] - when printing, separate output lines with a null character instead of a newline"
     echo "<dir>... - list of git worktrees"
 
     exit 1
@@ -39,6 +40,7 @@ outDir="$(pwd)"
 worktrees=
 printRoots=false
 rootsSeparator='\n'
+printFailures=false
 while [ $# -gt 0 ]; do
     case "$1" in
         -h|--help)
@@ -63,6 +65,14 @@ while [ $# -gt 0 ]; do
             ;;
         --no-print)
             printRoots=false
+            shift
+            ;;
+        -P|--failures)
+            printFailures=true
+            shift
+            ;;
+        --no-failures)
+            printFailures=false
             shift
             ;;
         -0|-z|-Z|--null)
@@ -90,10 +100,12 @@ if [ -z "$worktrees" ]; then
     usage 1>&2
 fi
 
+failures=
 failuresCount=0
 for worktree in $worktrees; do
     if [ ! -d $worktree ]; then
         err "$worktree is not a directory, not gutting"
+        failures="$worktree${failures:+$rootsSeparator$failures}"
         failuresCount=$((failuresCount + 1))
         continue
     fi
@@ -101,12 +113,14 @@ for worktree in $worktrees; do
     if gitdir="$worktree/$(git -C $worktree rev-parse --git-dir 2> /dev/null)"; then
         if [ ! -d "$gitdir/objects" ]; then
             err "git directory $gitdir belonging to $worktree does not have an objects directory; refusing to gut likely linked worktree"
+            failures="$worktree${failures:+$rootsSeparator$failures}"
             failuresCount=$((failuresCount + 1))
             continue
         fi
 
         if [ ! -z "$(git -C "$worktree" status --porcelain=v1)" ]; then
             err "$worktree has untracked changes, skipping"
+            failures="$worktree${failures:+$rootsSeparator$failures}"
             failuresCount=$((failuresCount + 1))
             continue
         fi
@@ -120,8 +134,14 @@ for worktree in $worktrees; do
         fi
     else
         err "$worktree is not a git worktree, skipping"
+        failures="$worktree${failures:+$rootsSeparator$failures}"
         failuresCount=$((failuresCount + 1))
     fi
 done
+
+if [ "$printFailures" = "true" ] && [ $failuresCount -gt 0 ]; then
+    if [ "$printRoots" = "true" ]; then printf "$rootsSeparator"; fi
+    printf "$failures$rootsSeparator"
+fi
 
 exit $failuresCount
