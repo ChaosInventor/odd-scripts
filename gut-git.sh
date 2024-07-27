@@ -31,7 +31,7 @@ $description
 [-P | --[no-]failures] - enable or disable printing of worktree
     directories that weren't gutted, off by default. If gutted worktree
     toplevel printing is also enabled, a blank line is printed before
-    the failures.
+    the failures
 [-z | -Z | -0 | --null] - when printing, separate output lines with a
     null character instead of a newline
 [--] - stop option processing, allows for directories that start with -
