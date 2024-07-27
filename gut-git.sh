@@ -105,7 +105,7 @@ done
 worktrees="${worktrees:+$worktrees }$@"
 
 if [ -z "$worktrees" ]; then
-    err "no worktrees given"
+    err 'no worktrees given'
     usage 1>&2
 fi
 
@@ -160,7 +160,7 @@ for worktree in $worktrees; do
     fi
 done
 
-if [ "$printFailures" = "true" ] && [ $printRoots = 'true' ]; then
+if [ "$printFailures" = 'true' ] && [ $printRoots = 'true' ]; then
     printf "$rootsSeparator$failures$rootsSeparator"
 fi
 
