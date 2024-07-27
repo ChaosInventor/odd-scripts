@@ -118,9 +118,13 @@ for worktree in $worktrees; do
         error='error'
     fi
 
-    if [ -z "$error" ] && ! gitdir="$worktree/$(git -C $worktree rev-parse --git-dir 2> /dev/null)"; then
+    if [ -z "$error" ] && ! gitdir="$(git -C $worktree rev-parse --git-dir 2> /dev/null)"; then
         err "$worktree is not a git worktree, skipping"
         error='error'
+    fi
+    #Is path relative?
+    if [ "$gitdir" = "${gitdir#/}" ]; then
+        gitdir="$worktree"/"$gitdir"
     fi
 
     if [ -z "$error" ] && [ ! -d "$gitdir/objects" ]; then
