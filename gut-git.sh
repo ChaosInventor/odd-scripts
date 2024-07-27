@@ -25,7 +25,7 @@ usage() {
     echo "[-z | -Z | -0 | --null] - when printing, separate output lines with a null character instead of a newline"
     echo "<dir>... - list of git worktrees"
 
-    exit 1
+    exit "${1:-1}"
 }
 
 err() {
@@ -44,7 +44,7 @@ printFailures=false
 while [ $# -gt 0 ]; do
     case "$1" in
         -h|--help)
-            usage
+            usage 0
             ;;
         -t|--target)
             if [ $# -lt 2 ]; then
