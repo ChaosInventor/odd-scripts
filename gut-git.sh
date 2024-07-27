@@ -8,6 +8,10 @@ gutted. The .git directory is moved to the target directory, renamed to
 <project name>.git and configured to be bare.
 EOF
 )
+authors=$(cat <<EOF
+ChaosInventor
+EOF
+)
 
 set -e
 
