@@ -147,14 +147,17 @@ for worktree in $worktrees; do
             printf "%s$rootsSeparator" "$worktreeRoot"
         fi
     else
-        failures="${failures:+$failures$rootsSeparator}$worktree"
         failuresCount=$((failuresCount + 1))
+        if [ "$printRoots" = 'false' ] && [ "$printFailures" = 'true' ]; then
+            printf "%s$rootsSeparator" "$worktree"
+        else
+            failures="${failures:+$failures$rootsSeparator}$worktree"
+        fi
     fi
 done
 
-if [ "$printFailures" = "true" ] && [ $failuresCount -gt 0 ]; then
-    if [ "$printRoots" = "true" ]; then printf "$rootsSeparator"; fi
-    printf "$failures$rootsSeparator"
+if [ "$printFailures" = "true" ] && [ $printRoots = 'true' ]; then
+    printf "$rootsSeparator$failures$rootsSeparator"
 fi
 
 exit $failuresCount
