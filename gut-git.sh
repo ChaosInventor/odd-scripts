@@ -14,9 +14,10 @@ set -e
 myName=$(basename $0)
 
 usage() {
-    echo "Usage: $myName [-t | --target <dir>] [--] <dir>..."
+    echo "Usage: $myName [-h | --help] [-t | --target <dir>] [--] <dir>..."
     echo "$description"
     echo
+    echo "[-h | --help] - print this message and exit"
     echo "[-t --target <dir>] - where to put newly bare repos, pwd by default"
     echo "<dir>... - list of git worktrees"
 
@@ -31,6 +32,9 @@ outDir="$(pwd)"
 worktrees=
 while [ $# -gt 0 ]; do
     case "$1" in
+        -h|--help)
+            usage
+            ;;
         -t|--target)
             if [ $# -lt 2 ]; then
                 echo "$myName: No directory specified for $1"
