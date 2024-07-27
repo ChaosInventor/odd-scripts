@@ -90,20 +90,24 @@ if [ -z "$worktrees" ]; then
     usage 1>&2
 fi
 
+failuresCount=0
 for worktree in $worktrees; do
     if [ ! -d $worktree ]; then
         err "$worktree is not a directory, not gutting"
+        failuresCount=$((failuresCount + 1))
         continue
     fi
 
     if gitdir="$worktree/$(git -C $worktree rev-parse --git-dir 2> /dev/null)"; then
         if [ ! -d "$gitdir/objects" ]; then
             err "git directory $gitdir belonging to $worktree does not have an objects directory; refusing to gut likely linked worktree"
+            failuresCount=$((failuresCount + 1))
             continue
         fi
 
         if [ ! -z "$(git -C "$worktree" status --porcelain=v1)" ]; then
             err "$worktree has untracked changes, skipping"
+            failuresCount=$((failuresCount + 1))
             continue
         fi
 
@@ -116,5 +120,8 @@ for worktree in $worktrees; do
         fi
     else
         err "$worktree is not a git worktree, skipping"
+        failuresCount=$((failuresCount + 1))
     fi
 done
+
+exit $failuresCount
