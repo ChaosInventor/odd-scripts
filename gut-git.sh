@@ -147,7 +147,7 @@ for worktree in $worktrees; do
             printf "%s$rootsSeparator" "$worktreeRoot"
         fi
     else
-        failures="$worktree${failures:+$rootsSeparator$failures}"
+        failures="${failures:+$failures$rootsSeparator}$worktree"
         failuresCount=$((failuresCount + 1))
     fi
 done
