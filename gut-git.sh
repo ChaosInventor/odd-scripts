@@ -127,6 +127,14 @@ for worktree in $worktrees; do
             continue
         fi
 
+        bare="$(git -C $worktree config --local --bool core.bare)"
+        if [ "$bare" = "true" ] ; then
+            err "$worktree already bare, cannot gut"
+            failures="$worktree${failures:+$rootsSeparator$failures}"
+            failuresCount=$((failuresCount + 1))
+            continue
+        fi
+
         if [ ! -z "$(git -C "$worktree" status --porcelain=v1)" ]; then
             err "$worktree has untracked changes, skipping"
             failures="$worktree${failures:+$rootsSeparator$failures}"
