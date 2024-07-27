@@ -18,7 +18,7 @@ usage() {
     echo "$description"
     echo
     echo "[-h | --help] - print this message and exit"
-    echo "[-t --target <dir>] - where to put newly bare repos, pwd by default"
+    echo "[-t | --target <dir>] - where to put newly bare repos, pwd by default"
     echo "<dir>... - list of git worktrees"
 
     exit 1
