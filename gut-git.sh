@@ -65,6 +65,11 @@ while [ $# -gt 0 ]; do
 done
 worktrees="${worktrees:+$worktrees }$@"
 
+if [ -z "$worktrees" ]; then
+    echo "$myName: no worktrees given"
+    usage
+fi
+
 for worktree in $worktrees; do
     if [ ! -d $worktree ]; then
         echo "$myName: $worktree is not a directory, not gutting."
