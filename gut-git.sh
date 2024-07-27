@@ -86,7 +86,7 @@ fi
 
 for worktree in $worktrees; do
     if [ ! -d $worktree ]; then
-        err "$worktree is not a directory, not gutting."
+        err "$worktree is not a directory, not gutting"
         continue
     fi
 
