@@ -26,6 +26,10 @@ usage() {
     exit 1
 }
 
+err() {
+    printf "$myName: %s\n" "$*" 1>&2
+}
+
 if [ $# -lt 1 ]; then
     usage
 fi
@@ -40,11 +44,11 @@ while [ $# -gt 0 ]; do
             ;;
         -t|--target)
             if [ $# -lt 2 ]; then
-                echo "$myName: No directory specified for $1"
+                err "No directory specified for $1"
                 usage
             fi
             if [ ! -d $2 -o ! -w $2 ]; then
-                echo "$myName: $2 cannot be used as target, it is not a writable directory"
+                err "$2 cannot be used as target, it is not a writable directory"
                 usage
             fi
 
@@ -64,7 +68,7 @@ while [ $# -gt 0 ]; do
             break
             ;;
         -*)
-            echo "$myName: Unknown option $1"
+            err "Unknown option $1"
             usage
             ;;
         *)
@@ -76,24 +80,24 @@ done
 worktrees="${worktrees:+$worktrees }$@"
 
 if [ -z "$worktrees" ]; then
-    echo "$myName: no worktrees given"
+    err "no worktrees given"
     usage
 fi
 
 for worktree in $worktrees; do
     if [ ! -d $worktree ]; then
-        echo "$myName: $worktree is not a directory, not gutting."
+        err "$worktree is not a directory, not gutting."
         continue
     fi
 
     if gitdir="$worktree/$(git -C $worktree rev-parse --git-dir 2> /dev/null)"; then
         if [ ! -d "$gitdir/objects" ]; then
-            echo "$myName: git directory $gitdir belonging to $worktree does not have an objects directory; refusing to gut likely linked worktree"
+            err "git directory $gitdir belonging to $worktree does not have an objects directory; refusing to gut likely linked worktree"
             continue
         fi
 
         if [ ! -z "$(git -C "$worktree" status --porcelain=v1)" ]; then
-            echo "$myName: $worktree has untracked changes, skipping"
+            err "$worktree has untracked changes, skipping"
             continue
         fi
 
@@ -105,6 +109,6 @@ for worktree in $worktrees; do
             printf "%s\n" "$worktreeRoot"
         fi
     else
-        echo "$myName: $worktree is not a git worktree, skipping"
+        err "$worktree is not a git worktree, skipping"
     fi
 done
